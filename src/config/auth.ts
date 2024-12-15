@@ -1,0 +1,1 @@
+export const ADMIN_CODE = 'DUOLE2024'; // This would typically come from an environment variable
