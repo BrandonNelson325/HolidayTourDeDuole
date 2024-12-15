@@ -9,7 +9,7 @@ interface RaceStore {
   isLoading: boolean;
   error: string | null;
   fetchRacers: () => Promise<void>;
-  addRacer: (name: string) => Promise<void>;
+  addRacer: (data: { name: string; gender: 'male' | 'female' }) => Promise<void>;
   addDailyResult: (racerId: string, data: { time: number; sprintPoints: number; komPoints: number }) => Promise<void>;
 }
 
@@ -28,10 +28,10 @@ export const useRaceStore = create<RaceStore>((set, get) => ({
     }
   },
 
-  addRacer: async (name: string) => {
+  addRacer: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      await racerService.addRacer({ name });
+      await racerService.addRacer(data);
       await get().fetchRacers();
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });

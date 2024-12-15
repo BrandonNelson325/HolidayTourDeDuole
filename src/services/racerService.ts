@@ -12,6 +12,7 @@ export const racerService = {
       .select(`
         id,
         name,
+        gender,
         total_time,
         total_sprint_points,
         total_kom_points,
