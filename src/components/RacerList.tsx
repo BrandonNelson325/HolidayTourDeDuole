@@ -18,9 +18,64 @@ export function RacerList() {
   
   const sortedRacers = sortRacers(filteredRacers, sortField);
 
+  // Find leaders for each category by gender
+  const maleTimeLeader = racers
+    .filter(r => r.gender === 'male' && r.total_time > 0)
+    .reduce((min, r) => (!min || r.total_time < min.total_time ? r : min), null);
+
+  const femaleTimeLeader = racers
+    .filter(r => r.gender === 'female' && r.total_time > 0)
+    .reduce((min, r) => (!min || r.total_time < min.total_time ? r : min), null);
+
+  const maleSprintLeader = racers
+    .filter(r => r.gender === 'male' && r.total_sprint_points > 0)
+    .reduce((max, r) => (!max || r.total_sprint_points > max.total_sprint_points ? r : max), null);
+
+  const femaleSprintLeader = racers
+    .filter(r => r.gender === 'female' && r.total_sprint_points > 0)
+    .reduce((max, r) => (!max || r.total_sprint_points > max.total_sprint_points ? r : max), null);
+
+  const maleKomLeader = racers
+    .filter(r => r.gender === 'male' && r.total_kom_points > 0)
+    .reduce((max, r) => (!max || r.total_kom_points > max.total_kom_points ? r : max), null);
+
+  const femaleKomLeader = racers
+    .filter(r => r.gender === 'female' && r.total_kom_points > 0)
+    .reduce((max, r) => (!max || r.total_kom_points > max.total_kom_points ? r : max), null);
+
   if (racers.length === 0) {
     return null;
   }
+
+  const getRowClassName = (racer: typeof sortedRacers[0]) => {
+    const classes = [];
+
+    // Yellow jersey (time leaders)
+    if (
+      (racer.gender === 'male' && maleTimeLeader?.id === racer.id) ||
+      (racer.gender === 'female' && femaleTimeLeader?.id === racer.id)
+    ) {
+      classes.push('bg-yellow-50');
+    }
+
+    // Green jersey (sprint leaders)
+    if (
+      (racer.gender === 'male' && maleSprintLeader?.id === racer.id) ||
+      (racer.gender === 'female' && femaleSprintLeader?.id === racer.id)
+    ) {
+      classes.push('bg-green-50');
+    }
+
+    // Polka dot jersey (KOM leaders)
+    if (
+      (racer.gender === 'male' && maleKomLeader?.id === racer.id) ||
+      (racer.gender === 'female' && femaleKomLeader?.id === racer.id)
+    ) {
+      classes.push('bg-red-50');
+    }
+
+    return classes.join(' ');
+  };
 
   return (
     <div className="space-y-4">
@@ -40,8 +95,42 @@ export function RacerList() {
           </select>
         </div>
       </div>
-      
+
       <div className="overflow-x-auto">
+        <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="text-sm space-y-2">
+            <h3 className="font-semibold text-gray-700">Men's Leaders</h3>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-yellow-50 rounded"></div>
+              <span>GC: {maleTimeLeader?.name || 'None'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-green-50 rounded"></div>
+              <span>Sprint: {maleSprintLeader?.name || 'None'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-red-50 rounded"></div>
+              <span>KOM: {maleKomLeader?.name || 'None'}</span>
+            </div>
+          </div>
+          
+          <div className="text-sm space-y-2">
+            <h3 className="font-semibold text-gray-700">Women's Leaders</h3>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-yellow-50 rounded"></div>
+              <span>GC: {femaleTimeLeader?.name || 'None'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-green-50 rounded"></div>
+              <span>Sprint: {femaleSprintLeader?.name || 'None'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-red-50 rounded"></div>
+              <span>KOM: {femaleKomLeader?.name || 'None'}</span>
+            </div>
+          </div>
+        </div>
+        
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -76,7 +165,7 @@ export function RacerList() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedRacers.map((racer, index) => (
-              <tr key={racer.id} className={index === 0 ? 'bg-yellow-50' : ''}>
+              <tr key={racer.id} className={getRowClassName(racer)}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {index + 1}
                 </td>
