@@ -10,6 +10,11 @@ export function RacerList() {
   const [sortField, setSortField] = React.useState<SortField>('time');
   const sortedRacers = sortRacers(racers, sortField);
 
+  // Don't render anything if there are no racers
+  if (racers.length === 0) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
       <SortControls currentSort={sortField} onSortChange={setSortField} />
