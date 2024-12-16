@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Clock, Award, Mountain } from 'lucide-react';
 import { useRaceStore } from '../stores/useRaceStore';
-import { timeToMilliseconds } from '../utils/timeUtils';
-import { RacerDayProgress } from './RacerDayProgress';
+import { timeToMilliseconds, millisecondsToTime } from '../utils/timeUtils';
+import { DaySelector } from './DaySelector';
 
 export function DailyResultsTable() {
-  const { racers, addDailyResult, isLoading } = useRaceStore();
+  const { 
+    dailyRacers,
+    fetchDailyRacers,
+    addDailyResult, 
+    selectDay,
+    selectedDay,
+    currentDailyResult,
+    isLoading 
+  } = useRaceStore();
+
+  useEffect(() => {
+    fetchDailyRacers();
+  }, [fetchDailyRacers]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, racerId: string) => {
     e.preventDefault();
@@ -17,16 +29,7 @@ export function DailyResultsTable() {
       sprintPoints: parseInt(formData.get('sprintPoints') as string || '0'),
       komPoints: parseInt(formData.get('komPoints') as string || '0'),
     });
-
-    e.currentTarget.reset();
   };
-
-  // Sort racers with times to the top
-  const sortedRacers = [...racers].sort((a, b) => {
-    if (a.total_time === 0 && b.total_time > 0) return 1;
-    if (b.total_time === 0 && a.total_time > 0) return -1;
-    return 0;
-  });
 
   return (
     <div className="overflow-x-auto">
@@ -34,7 +37,7 @@ export function DailyResultsTable() {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-              Racer
+              Name
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
               Progress
@@ -63,71 +66,89 @@ export function DailyResultsTable() {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {sortedRacers.map((racer) => (
-            <tr key={racer.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {racer.name}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <RacerDayProgress currentDay={racer.current_day} />
-              </td>
-              {racer.current_day <= 5 ? (
-                <td colSpan={4}>
-                  <form 
-                    className="flex items-center space-x-4"
-                    onSubmit={(e) => handleSubmit(e, racer.id)}
-                  >
-                    <div className="w-40 px-6">
+          {dailyRacers.map((racer) => {
+            const isEditing = selectedDay !== null && currentDailyResult?.racer_id === racer.id;
+            const completedStages = racer.daily_results?.length ?? 0;
+            
+            return (
+              <tr key={racer.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {racer.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <DaySelector
+                    currentDay={racer.current_day}
+                    completedDays={completedStages}
+                    selectedDay={selectedDay ?? racer.current_day}
+                    onDaySelect={(day) => selectDay(racer.id, day)}
+                  />
+                </td>
+                {racer.current_day <= 5 ? (
+                  <>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <input
                         type="text"
                         name="time"
+                        form={`result-form-${racer.id}`}
                         pattern="^(?:[0-9]{1,2}:)?[0-5]?[0-9]:[0-5][0-9](?:\.[0-9]{1,3})?$"
                         placeholder="HH:MM:SS.mmm"
+                        defaultValue={isEditing && currentDailyResult?.time ? millisecondsToTime(currentDailyResult.time) : ''}
+                        key={`${racer.id}-${selectedDay}-time`}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         required
                         disabled={isLoading}
                       />
-                    </div>
-                    <div className="w-32 px-6">
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <input
                         type="number"
                         name="sprintPoints"
+                        form={`result-form-${racer.id}`}
                         placeholder="0"
-                        defaultValue="0"
+                        defaultValue={isEditing ? currentDailyResult?.sprint_points ?? 0 : 0}
+                        key={`${racer.id}-${selectedDay}-sprint`}
                         min="0"
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         disabled={isLoading}
                       />
-                    </div>
-                    <div className="w-32 px-6">
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <input
                         type="number"
                         name="komPoints"
+                        form={`result-form-${racer.id}`}
                         placeholder="0"
-                        defaultValue="0"
+                        defaultValue={isEditing ? currentDailyResult?.kom_points ?? 0 : 0}
+                        key={`${racer.id}-${selectedDay}-kom`}
                         min="0"
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         disabled={isLoading}
                       />
-                    </div>
-                    <div className="px-6">
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <form
+                        id={`result-form-${racer.id}`}
+                        onSubmit={(e) => handleSubmit(e, racer.id)}
+                        className="flex items-center space-x-4"
                       >
-                        Save Day {racer.current_day}
-                      </button>
-                    </div>
-                  </form>
-                </td>
-              ) : (
-                <td colSpan={4} className="px-6 py-4 text-sm text-gray-500">
-                  All days completed
-                </td>
-              )}
-            </tr>
-          ))}
+                        <button
+                          type="submit"
+                          disabled={isLoading}
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Save Day {selectedDay ?? racer.current_day}
+                        </button>
+                      </form>
+                    </td>
+                  </>
+                ) : (
+                  <td colSpan={4} className="px-6 py-4 text-sm text-gray-500">
+                    All days completed
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
