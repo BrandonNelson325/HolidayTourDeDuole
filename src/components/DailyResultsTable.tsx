@@ -3,6 +3,7 @@ import { Clock, Award, Mountain } from 'lucide-react';
 import { useRaceStore } from '../stores/useRaceStore';
 import { timeToMilliseconds, millisecondsToTime } from '../utils/timeUtils';
 import { DaySelector } from './DaySelector';
+import { TimeInput } from './TimeInput';
 
 export function DailyResultsTable() {
   const { 
@@ -11,6 +12,7 @@ export function DailyResultsTable() {
     addDailyResult, 
     selectDay,
     selectedDay,
+    selectedRacerId,
     currentDailyResult,
     isLoading 
   } = useRaceStore();
@@ -81,22 +83,20 @@ export function DailyResultsTable() {
                     completedDays={completedStages}
                     selectedDay={selectedDay ?? racer.current_day}
                     onDaySelect={(day) => selectDay(racer.id, day)}
+                    racerId={racer.id}
+                    selectedRacerId={selectedRacerId}
                   />
                 </td>
                 {racer.current_day <= 5 ? (
                   <>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <input
-                        type="text"
+                      <TimeInput
                         name="time"
                         form={`result-form-${racer.id}`}
-                        pattern="^(?:[0-9]{1,2}:)?[0-5]?[0-9]:[0-5][0-9](?:\.[0-9]{1,3})?$"
-                        placeholder="HH:MM:SS.mmm"
-                        defaultValue={isEditing && currentDailyResult?.time ? millisecondsToTime(currentDailyResult.time) : ''}
-                        key={`${racer.id}-${selectedDay}-time`}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        required
+                        value={isEditing && currentDailyResult?.time ? millisecondsToTime(currentDailyResult.time) : '00:00:00.000'}
+                        onChange={() => {}} // Form will handle the final value
                         disabled={isLoading}
+                        required
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

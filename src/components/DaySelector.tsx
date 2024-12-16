@@ -6,14 +6,23 @@ interface DaySelectorProps {
   completedDays: number;
   onDaySelect: (day: number) => void;
   selectedDay: number;
+  racerId: string;
+  selectedRacerId: string | null;
 }
 
-export function DaySelector({ currentDay, completedDays, onDaySelect, selectedDay }: DaySelectorProps) {
+export function DaySelector({ 
+  currentDay, 
+  completedDays, 
+  onDaySelect, 
+  selectedDay,
+  racerId,
+  selectedRacerId
+}: DaySelectorProps) {
   return (
     <div className="flex space-x-2">
       {[1, 2, 3, 4, 5].map((day) => {
         const isCompleted = day <= completedDays;
-        const isSelected = day === selectedDay;
+        const isSelected = day === selectedDay && racerId === selectedRacerId;
         const isClickable = day <= currentDay;
 
         return (

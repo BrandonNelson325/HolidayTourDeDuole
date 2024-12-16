@@ -12,6 +12,7 @@ interface RaceStore {
   isLoading: boolean;
   error: string | null;
   selectedDay: number | null;
+  selectedRacerId: string | null;
   currentDailyResult: DailyResult | null;
   fetchRacers: () => Promise<void>;
   fetchDailyRacers: () => Promise<void>;
@@ -26,6 +27,7 @@ export const useRaceStore = create<RaceStore>((set, get) => ({
   isLoading: false,
   error: null,
   selectedDay: null,
+  selectedRacerId: null,
   currentDailyResult: null,
 
   fetchRacers: async () => {
@@ -65,6 +67,7 @@ export const useRaceStore = create<RaceStore>((set, get) => ({
       const result = await racerService.getDailyResult(racerId, day);
       set({ 
         selectedDay: day,
+        selectedRacerId: racerId,
         currentDailyResult: result,
         isLoading: false 
       });
@@ -73,6 +76,7 @@ export const useRaceStore = create<RaceStore>((set, get) => ({
         error: (error as Error).message,
         isLoading: false,
         selectedDay: day,
+        selectedRacerId: racerId,
         currentDailyResult: null
       });
     }
@@ -93,7 +97,7 @@ export const useRaceStore = create<RaceStore>((set, get) => ({
 
       await get().fetchRacers();
       await get().fetchDailyRacers();
-      set({ selectedDay: null, currentDailyResult: null });
+      set({ selectedDay: null, selectedRacerId: null, currentDailyResult: null });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
     }
