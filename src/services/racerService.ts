@@ -9,7 +9,7 @@ export const racerService = {
   async getRacers() {
     const { data, error } = await supabase
       .from('racer_standings')
-      .select('*');
+      .select('*, daily_results(*)');
     
     if (error) throw error;
     return data;

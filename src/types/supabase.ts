@@ -1,68 +1,20 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+import type { Database as DatabaseGenerated } from './supabase-types';
 
-export interface Database {
+export interface Database extends DatabaseGenerated {
   public: {
-    Tables: {
+    Tables: DatabaseGenerated['public']['Tables'] & {
       racers: {
-        Row: {
-          id: string
-          name: string
-          gender: 'male' | 'female'
-          total_time: number
-          total_sprint_points: number
-          total_kom_points: number
-          current_day: number
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          gender: 'male' | 'female'
-          total_time?: number
-          total_sprint_points?: number
-          total_kom_points?: number
-          current_day?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          gender?: 'male' | 'female'
-          total_time?: number
-          total_sprint_points?: number
-          total_kom_points?: number
-          current_day?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      // ... rest of the types remain the same
-    }
-    Views: {
+        Row: DatabaseGenerated['public']['Tables']['racers']['Row'] & {
+          daily_results?: Array<DatabaseGenerated['public']['Tables']['daily_results']['Row']>;
+        };
+      };
+    };
+    Views: DatabaseGenerated['public']['Views'] & {
       racer_standings: {
-        Row: {
-          id: string
-          name: string
-          gender: 'male' | 'female'
-          total_time: number
-          total_sprint_points: number
-          total_kom_points: number
-          current_day: number
-          completed_stages: number
-        }
-      }
-    }
-    // ... rest of the types remain the same
-  }
+        Row: DatabaseGenerated['public']['Views']['racer_standings']['Row'] & {
+          daily_results?: Array<DatabaseGenerated['public']['Tables']['daily_results']['Row']>;
+        };
+      };
+    };
+  };
 }
