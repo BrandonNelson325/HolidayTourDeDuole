@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
+import { TOTAL_DAYS } from '../config/constants';
 
 interface DayProgressProps {
   currentDay: number;
@@ -10,7 +11,7 @@ export function DayProgress({ currentDay }: DayProgressProps) {
     <div className="flex items-center space-x-2">
       <span className="text-sm font-medium text-gray-700">Progress:</span>
       <div className="flex space-x-1">
-        {[1, 2, 3, 4, 5].map((day) => (
+        {Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).map((day) => (
           <div
             key={day}
             className={`flex items-center justify-center w-8 h-8 rounded-full ${

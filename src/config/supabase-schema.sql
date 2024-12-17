@@ -9,7 +9,7 @@ CREATE TABLE public.racers (
     total_time INTEGER DEFAULT 0 NOT NULL,
     total_sprint_points INTEGER DEFAULT 0 NOT NULL,
     total_kom_points INTEGER DEFAULT 0 NOT NULL,
-    current_day INTEGER DEFAULT 1 NOT NULL CHECK (current_day BETWEEN 1 AND 5),
+    current_day INTEGER DEFAULT 1 NOT NULL CHECK (current_day BETWEEN 1 AND 4),
     is_active BOOLEAN DEFAULT true NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -19,7 +19,7 @@ CREATE TABLE public.racers (
 CREATE TABLE public.daily_results (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     racer_id UUID NOT NULL REFERENCES public.racers(id),
-    day INTEGER NOT NULL CHECK (day BETWEEN 1 AND 5),
+    day INTEGER NOT NULL CHECK (day BETWEEN 1 AND 4),
     time INTEGER NOT NULL,
     sprint_points INTEGER DEFAULT 0 NOT NULL,
     kom_points INTEGER DEFAULT 0 NOT NULL,
@@ -53,7 +53,7 @@ BEGIN
         current_day = LEAST(
             (SELECT COUNT(*) + 1
              FROM public.daily_results
-             WHERE racer_id = racer_uuid), 5),
+             WHERE racer_id = racer_uuid), 4),
         updated_at = NOW()
     WHERE id = racer_uuid;
 END;

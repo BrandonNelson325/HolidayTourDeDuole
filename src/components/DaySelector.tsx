@@ -1,5 +1,6 @@
 import React from 'react';
 import { Circle, CheckCircle2 } from 'lucide-react';
+import { TOTAL_DAYS } from '../config/constants';
 
 interface DaySelectorProps {
   currentDay: number;
@@ -20,7 +21,7 @@ export function DaySelector({
 }: DaySelectorProps) {
   return (
     <div className="flex space-x-2">
-      {[1, 2, 3, 4, 5].map((day) => {
+      {Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).map((day) => {
         const isCompleted = day <= completedDays;
         const isSelected = day === selectedDay && racerId === selectedRacerId;
         const isClickable = day <= currentDay;

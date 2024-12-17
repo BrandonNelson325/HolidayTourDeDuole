@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
+import { TOTAL_DAYS } from '../config/constants';
 
 interface RacerDayProgressProps {
   currentDay: number;
@@ -8,7 +9,7 @@ interface RacerDayProgressProps {
 export function RacerDayProgress({ currentDay }: RacerDayProgressProps) {
   return (
     <div className="flex space-x-1">
-      {[1, 2, 3, 4, 5].map((day) => (
+      {Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).map((day) => (
         <div
           key={day}
           className={`flex items-center justify-center w-6 h-6 rounded-full ${
