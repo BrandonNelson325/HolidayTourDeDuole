@@ -10,7 +10,7 @@ function EmbeddedStandings() {
   useEffect(() => {
     fetchRacers();
     // Set up auto-refresh every 30 seconds
-    const interval = setInterval(fetchRacers, 150000);
+    const interval = setInterval(fetchRacers, 30000);
     return () => clearInterval(interval);
   }, [fetchRacers]);
 
