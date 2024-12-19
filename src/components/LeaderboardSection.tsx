@@ -2,6 +2,7 @@ import React from 'react';
 import { Trophy, Clock, Award, Mountain } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { millisecondsToTime } from '../utils/timeUtils';
+import { getLatestDayResult, getLatestActiveDay } from '../utils/sortUtils';
 
 type RacerStanding = Database['public']['Views']['racer_standings']['Row'];
 
@@ -19,9 +20,9 @@ function Leader({ position, name, value }: LeaderProps) {
   if (!name) return null;
   
   return (
-    <div className="flex items-center gap-2 pl-6 sm:pl-8">
+    <div className="flex items-center gap-2 pl-8 sm:pl-10">
       <div className="flex-shrink-0 w-5">
-        <Trophy className={`h-4 w-4 ${
+        <Trophy className={`h-5 w-5 sm:h-4 sm:w-4 ${
           position === 1 ? 'text-yellow-500' :
           position === 2 ? 'text-gray-400' :
           'text-amber-600'
@@ -48,11 +49,23 @@ function CategoryLeaders({
   formatValue?: (value: any) => string;
   sortDirection?: 'asc' | 'desc';
 }) {
+  const latestDay = getLatestActiveDay(racers);
+  
   const sortedRacers = [...racers]
     .filter(r => getValue(r) > 0)
     .sort((a, b) => {
-      const diff = getValue(a) - getValue(b);
-      return sortDirection === 'asc' ? diff : -diff;
+      // For time sorting, respect the latest day results
+      if (sortDirection === 'asc') {
+        const aLatestTime = getLatestDayResult(a, latestDay);
+        const bLatestTime = getLatestDayResult(b, latestDay);
+
+        if (aLatestTime > 0 && bLatestTime === 0) return -1;
+        if (aLatestTime === 0 && bLatestTime > 0) return 1;
+      }
+
+      const aValue = getValue(a);
+      const bValue = getValue(b);
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
     })
     .slice(0, 3);
 
@@ -60,11 +73,11 @@ function CategoryLeaders({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+      <div className="flex items-center gap-2 border-b-2 border-gray-300 pb-2">
         <div className="flex-shrink-0">
-          <Icon className="h-5 w-5 text-gray-700" />
+          <Icon className="h-6 w-6 text-gray-800" />
         </div>
-        <h4 className="font-bold text-gray-900 tracking-wide uppercase text-sm">{title}</h4>
+        <h4 className="font-bold text-gray-900 tracking-wide uppercase text-base">{title}</h4>
       </div>
       <div className="space-y-2">
         {sortedRacers.map((racer, index) => (
@@ -87,7 +100,7 @@ export function LeaderboardSection({ racers }: LeaderboardSectionProps) {
   return (
     <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="space-y-6">
-        <h3 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-2">
+        <h3 className="text-lg font-bold text-gray-900 border-b-2 border-gray-300 pb-2">
           Men's Leaders
         </h3>
         <div className="grid grid-cols-1 gap-8 bg-white p-4 sm:p-6 rounded-lg shadow-sm">
@@ -116,7 +129,7 @@ export function LeaderboardSection({ racers }: LeaderboardSectionProps) {
       </div>
 
       <div className="space-y-6">
-        <h3 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-2">
+        <h3 className="text-lg font-bold text-gray-900 border-b-2 border-gray-300 pb-2">
           Women's Leaders
         </h3>
         <div className="grid grid-cols-1 gap-8 bg-white p-4 sm:p-6 rounded-lg shadow-sm">
