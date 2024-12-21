@@ -23,31 +23,35 @@ export function hasCompletedAllDaysUpTo(racer: RacerStanding, day: number): bool
   return true;
 }
 
+function compareByTime(a: RacerStanding, b: RacerStanding, latestDay: number): number {
+  const aComplete = hasCompletedAllDaysUpTo(a, latestDay);
+  const bComplete = hasCompletedAllDaysUpTo(b, latestDay);
+
+  if (aComplete && !bComplete) return -1;
+  if (!aComplete && bComplete) return 1;
+
+  if (a.total_time === 0 && b.total_time > 0) return 1;
+  if (b.total_time === 0 && a.total_time > 0) return -1;
+  return a.total_time - b.total_time;
+}
+
+function compareByPoints(a: RacerStanding, b: RacerStanding, getValue: (r: RacerStanding) => number): number {
+  const aValue = getValue(a);
+  const bValue = getValue(b);
+  return bValue - aValue;
+}
+
 export function sortRacers(racers: RacerStanding[], sortField: SortField): RacerStanding[] {
   const latestDay = getLatestActiveDay(racers);
   
   return [...racers].sort((a, b) => {
-    // First, check if both racers have completed all days up to the latest
-    const aComplete = hasCompletedAllDaysUpTo(a, latestDay);
-    const bComplete = hasCompletedAllDaysUpTo(b, latestDay);
-
-    // If one has completed all days and the other hasn't, prioritize the complete one
-    if (aComplete && !bComplete) return -1;
-    if (!aComplete && bComplete) return 1;
-
-    // If both are complete or both incomplete, sort by the specified field
     switch (sortField) {
       case 'time':
-        if (a.total_time === 0 && b.total_time > 0) return 1;
-        if (b.total_time === 0 && a.total_time > 0) return -1;
-        return a.total_time - b.total_time;
-      
+        return compareByTime(a, b, latestDay);
       case 'sprint':
-        return b.total_sprint_points - a.total_sprint_points;
-      
+        return compareByPoints(a, b, r => r.total_sprint_points);
       case 'kom':
-        return b.total_kom_points - a.total_kom_points;
-      
+        return compareByPoints(a, b, r => r.total_kom_points);
       default:
         return 0;
     }
