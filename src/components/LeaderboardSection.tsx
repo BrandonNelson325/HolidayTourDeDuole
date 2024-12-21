@@ -2,7 +2,7 @@ import React from 'react';
 import { Trophy, Clock, Award, Mountain } from 'lucide-react';
 import type { Database } from '../types/supabase';
 import { millisecondsToTime } from '../utils/timeUtils';
-import { getLatestDayResult, getLatestActiveDay } from '../utils/sortUtils';
+import { getLeaders } from '../utils/leaderboardUtils';
 
 type RacerStanding = Database['public']['Views']['racer_standings']['Row'];
 
@@ -22,7 +22,7 @@ function Leader({ position, name, value }: LeaderProps) {
   return (
     <div className="flex items-center gap-2 pl-8 sm:pl-10">
       <div className="flex-shrink-0 w-5">
-        <Trophy className={`h-5 w-5 sm:h-4 sm:w-4 ${
+        <Trophy className={`h-5 w-5 ${
           position === 1 ? 'text-yellow-500' :
           position === 2 ? 'text-gray-400' :
           'text-amber-600'
@@ -49,25 +49,7 @@ function CategoryLeaders({
   formatValue?: (value: any) => string;
   sortDirection?: 'asc' | 'desc';
 }) {
-  const latestDay = getLatestActiveDay(racers);
-  
-  const sortedRacers = [...racers]
-    .filter(r => getValue(r) > 0)
-    .sort((a, b) => {
-      // For time sorting, respect the latest day results
-      if (sortDirection === 'asc') {
-        const aLatestTime = getLatestDayResult(a, latestDay);
-        const bLatestTime = getLatestDayResult(b, latestDay);
-
-        if (aLatestTime > 0 && bLatestTime === 0) return -1;
-        if (aLatestTime === 0 && bLatestTime > 0) return 1;
-      }
-
-      const aValue = getValue(a);
-      const bValue = getValue(b);
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    })
-    .slice(0, 3);
+  const sortedRacers = getLeaders(racers, getValue, sortDirection);
 
   if (sortedRacers.length === 0) return null;
 
@@ -110,20 +92,19 @@ export function LeaderboardSection({ racers }: LeaderboardSectionProps) {
             racers={maleRacers}
             getValue={r => r.total_time}
             formatValue={millisecondsToTime}
+            sortDirection="asc"
           />
           <CategoryLeaders
             title="Sprint Competition"
             icon={Award}
             racers={maleRacers}
             getValue={r => r.total_sprint_points}
-            sortDirection="desc"
           />
           <CategoryLeaders
             title="King of the Mountains"
             icon={Mountain}
             racers={maleRacers}
             getValue={r => r.total_kom_points}
-            sortDirection="desc"
           />
         </div>
       </div>
@@ -139,20 +120,19 @@ export function LeaderboardSection({ racers }: LeaderboardSectionProps) {
             racers={femaleRacers}
             getValue={r => r.total_time}
             formatValue={millisecondsToTime}
+            sortDirection="asc"
           />
           <CategoryLeaders
             title="Sprint Competition"
             icon={Award}
             racers={femaleRacers}
             getValue={r => r.total_sprint_points}
-            sortDirection="desc"
           />
           <CategoryLeaders
             title="Queen of the Mountains"
             icon={Mountain}
             racers={femaleRacers}
             getValue={r => r.total_kom_points}
-            sortDirection="desc"
           />
         </div>
       </div>

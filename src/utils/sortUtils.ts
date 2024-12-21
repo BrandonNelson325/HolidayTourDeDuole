@@ -15,25 +15,29 @@ export function getLatestActiveDay(racers: RacerStanding[]): number {
   ), 0);
 }
 
+export function hasCompletedAllDaysUpTo(racer: RacerStanding, day: number): boolean {
+  const completedDays = new Set(racer.daily_results?.filter(dr => dr.time > 0).map(dr => dr.day));
+  for (let i = 1; i <= day; i++) {
+    if (!completedDays.has(i)) return false;
+  }
+  return true;
+}
+
 export function sortRacers(racers: RacerStanding[], sortField: SortField): RacerStanding[] {
   const latestDay = getLatestActiveDay(racers);
   
   return [...racers].sort((a, b) => {
-    // Get times for the latest day
-    const aLatestTime = getLatestDayResult(a, latestDay);
-    const bLatestTime = getLatestDayResult(b, latestDay);
+    // First, check if both racers have completed all days up to the latest
+    const aComplete = hasCompletedAllDaysUpTo(a, latestDay);
+    const bComplete = hasCompletedAllDaysUpTo(b, latestDay);
 
-    // If comparing times and we have a latest day with results
-    if (sortField === 'time' && latestDay > 0) {
-      // If one has a time for latest day and other doesn't, prioritize the one with time
-      if (aLatestTime > 0 && bLatestTime === 0) return -1;
-      if (aLatestTime === 0 && bLatestTime > 0) return 1;
-    }
+    // If one has completed all days and the other hasn't, prioritize the complete one
+    if (aComplete && !bComplete) return -1;
+    if (!aComplete && bComplete) return 1;
 
-    // If both have or don't have latest times, sort by the specified field
+    // If both are complete or both incomplete, sort by the specified field
     switch (sortField) {
       case 'time':
-        // Move racers with no total time to the bottom
         if (a.total_time === 0 && b.total_time > 0) return 1;
         if (b.total_time === 0 && a.total_time > 0) return -1;
         return a.total_time - b.total_time;
